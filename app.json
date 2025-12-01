@@ -4,10 +4,10 @@
     "slug": "navpal-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon.svg",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash.svg",
       "resizeMode": "contain",
       "backgroundColor": "#020617"
     },
@@ -15,18 +15,43 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.navpalai",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "NavPal AI needs your location to provide navigation and map services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "NavPal AI needs your location to provide navigation and map services.",
+        "NSMicrophoneUsageDescription": "NavPal AI needs microphone access for voice commands."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.svg",
         "backgroundColor": "#020617"
       },
-      "package": "com.anonymous.navpalai"
+      "package": "com.navpalai",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/favicon.svg",
       "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow NavPal AI to use your location for navigation."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fec0516b-3a55-4faf-bf70-4687eefc05c7"
+      }
     }
   }
 }

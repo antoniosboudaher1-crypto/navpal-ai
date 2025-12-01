@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, SafeAreaView, Pressable, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import * as Speech from 'expo-speech';
 import { Coordinates, Place, MapMode, User, NavigationRoute, ReportType, MapReport, AppView, MapStyle } from './types';
 import { DEFAULT_LOCATION } from './constants';
 import { queryNavPalAI } from './services/gemini';
@@ -71,13 +74,7 @@ export default function App() {
   const [recenterTrigger, setRecenterTrigger] = useState(0);
 
   // Preferences
-  const [showSpeedLimit, setShowSpeedLimit] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('navpal_pref_speed_limit');
-      return stored !== 'false'; // Default to true if not set or set to 'true'
-    }
-    return true;
-  });
+  const [showSpeedLimit, setShowSpeedLimit] = useState(true);
   const [isVoiceMuted, setIsVoiceMuted] = useState(false);
 
   // Navigation Metrics & Alerts
@@ -135,50 +132,44 @@ export default function App() {
     };
   }, []);
 
-  // Real-time GPS Tracking with Fallback Strategy
-  // Optimized: Cleans up previous watcher before starting new one to avoid leaks.
+  // Real-time GPS Tracking using expo-location
   useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
-      return;
-    }
+    let subscription: Location.LocationSubscription | null = null;
 
-    let watchId: number | null = null;
-
-    const handleSuccess = (position: GeolocationPosition) => {
-      setLocation({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      });
-      // speed is in meters per second
-      setCurrentSpeed(position.coords.speed);
-    };
-
-    const startWatching = (highAccuracy: boolean) => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
-      watchId = navigator.geolocation.watchPosition(
-        handleSuccess,
-        (error) => {
-          console.warn(`GPS Error (${highAccuracy ? 'High' : 'Low'}): ${error.message}`);
-          if (highAccuracy) {
-            // Fallback to low accuracy only once
-            startWatching(false);
-          }
-        },
-        {
-          enableHighAccuracy: highAccuracy,
-          timeout: highAccuracy ? 15000 : 30000,
-          maximumAge: highAccuracy ? 10000 : 60000
+    const startLocationTracking = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.error('Location permission not granted');
+          return;
         }
-      );
+
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 1000,
+            distanceInterval: 10,
+          },
+          (position) => {
+            setLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+            // speed is in meters per second
+            setCurrentSpeed(position.coords.speed);
+          }
+        );
+      } catch (error) {
+        console.error('Error starting location tracking:', error);
+      }
     };
 
-    // Start with High Accuracy
-    startWatching(true);
+    startLocationTracking();
 
     return () => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (subscription) {
+        subscription.remove();
+      }
     };
   }, []);
 
@@ -186,13 +177,10 @@ export default function App() {
   const speak = useCallback((text: string) => {
     if (isLiveSessionActive || isVoiceMuted) return;
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Cancel any previous speech to ensure latest instruction is heard
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.1;
-      utterance.pitch = 1;
-      window.speechSynthesis.speak(utterance);
-    }
+    Speech.speak(text, {
+      rate: 1.1,
+      pitch: 1.0,
+    });
   }, [isLiveSessionActive, isVoiceMuted]);
 
 
@@ -231,77 +219,12 @@ export default function App() {
   }, [isLiveSessionActive]);
 
   // --- Wake Word Detection (Hey MyPal) ---
+  // NOTE: Speech recognition is not available in React Native without third-party libraries
+  // This feature is disabled for mobile. Consider using a library like react-native-voice if needed.
   useEffect(() => {
-    // Only run if we are NOT in an active session, SpeechRecognition is supported, and User is Authenticated
-    if (isLiveSessionActive || !('webkitSpeechRecognition' in window) || !isAuthenticated) return;
-
-    let recognition: SpeechRecognition | null = null;
-    let restartTimer: any = null;
-    let isRunning = false;
-
-    const startListening = () => {
-      if (isRunning || !recognition) return;
-      try {
-        recognition.start();
-        isRunning = true;
-      } catch (e) {
-        // Ignore start errors (already started, etc)
-      }
-    };
-
-    try {
-      const SR = (window as any).webkitSpeechRecognition;
-      recognition = new SR();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onresult = (event: any) => {
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const transcript = event.results[i][0].transcript.toLowerCase().trim();
-
-          // Check for Wake Word
-          if (transcript.includes('my pal') || transcript.includes('mypal') || transcript.includes('hey my pal')) {
-            console.log("Wake word detected:", transcript);
-            recognition?.stop(); // Stop wake word listener
-            // Trigger MyPal
-            toggleLiveSession();
-            return;
-          }
-        }
-      };
-
-      recognition.onend = () => {
-        isRunning = false;
-        // Auto-restart if not in active session
-        if (!isLiveSessionActive && recognition) {
-          restartTimer = setTimeout(startListening, 1000);
-        }
-      };
-
-      recognition.onerror = (e: any) => {
-        isRunning = false;
-        // Silent fail/retry for wake word
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-          console.warn("Wake word detection disabled: Mic permission denied.");
-          recognition = null; // Disable future restarts
-        }
-      };
-
-      startListening();
-
-    } catch (e) {
-      console.warn("Wake word initialization failed", e);
-    }
-
-    return () => {
-      if (recognition) {
-        recognition.onend = null; // Prevent restart on unmount
-        recognition.stop();
-      }
-      if (restartTimer) clearTimeout(restartTimer);
-    };
-  }, [isLiveSessionActive, toggleLiveSession, isAuthenticated]);
+    // Wake word detection disabled on mobile
+    console.log('Wake word detection not available on React Native');
+  }, []);
 
   // Cleanup Live Session on unmount
   useEffect(() => {
@@ -313,10 +236,10 @@ export default function App() {
   }, []);
 
   // --- Preferences Handlers ---
-  const handleToggleSpeedLimit = () => {
+  const handleToggleSpeedLimit = async () => {
     const newValue = !showSpeedLimit;
     setShowSpeedLimit(newValue);
-    localStorage.setItem('navpal_pref_speed_limit', String(newValue));
+    await AsyncStorage.setItem('navpal_pref_speed_limit', String(newValue));
   };
 
   const handleUpdateUser = async (name: string) => {
@@ -332,12 +255,10 @@ export default function App() {
     }
   };
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     // History cleared locally
-    if (typeof window !== 'undefined') {
-      // Example: Clear search history if it were stored
-      // localStorage.removeItem('navpal_history');
-    }
+    // Example: Clear search history if it were stored
+    // await AsyncStorage.removeItem('navpal_history');
     speak("Search history cleared.");
     // Visual confirmation could be a toast, but speak covers it for now
   };

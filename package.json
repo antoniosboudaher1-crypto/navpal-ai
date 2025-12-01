@@ -3,41 +3,41 @@
   "private": true,
   "version": "2.5.0",
   "type": "module",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "dev": "expo start",
+    "build": "tsc && expo export",
+    "preview": "expo start --web"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
     "@supabase/supabase-js": "^2.39.7",
     "expo": "^54.0.25",
     "expo-linear-gradient": "^15.0.7",
+    "expo-location": "^18.0.6",
+    "expo-speech": "^13.0.3",
     "lucide-react": "^0.555.0",
     "lucide-react-native": "^0.555.0",
-    "mapbox-gl": "^3.1.2",
     "nativewind": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-map-gl": "^7.1.7",
     "react-native": "^0.82.1",
+    "react-native-maps": "^1.18.0",
     "react-native-svg": "^15.15.0",
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
-    "@types/mapbox-gl": "^3.1.0",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@types/react-native": "^0.72.8",
-    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.3.2",
-    "typescript": "^5.4.2",
-    "vite": "^7.2.4"
+    "typescript": "^5.4.2"
   }
 }
