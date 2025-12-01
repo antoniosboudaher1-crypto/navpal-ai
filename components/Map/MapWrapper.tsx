@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Coordinates, Place, MapReport, NavigationRoute, MapMode, MapStyle } from '../../types';
 
@@ -83,7 +83,7 @@ const MapWrapper: React.FC<MapWrapperProps> = ({
                 showsUserLocation={true}
                 showsMyLocationButton={false}
                 showsTraffic={showTraffic}
-                mapType={mapStyle === 'satellite' ? 'satellite' : 'standard'}
+                mapType={mapStyle === MapStyle.SATELLITE ? 'satellite' : 'standard'}
             >
                 {/* User Location Marker */}
                 <Marker
