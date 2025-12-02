@@ -103,7 +103,7 @@ export default function App() {
     checkAuth();
 
     // Auth State Listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         const currentUser = await getCurrentUser();
         setUser(currentUser);

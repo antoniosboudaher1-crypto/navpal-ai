@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { View, TextInput, TouchableOpacity, Image, Text } from 'react-native';
-import { Search, Mic, Navigation, Loader2, Send, MicOff, AudioLines, User as UserIcon } from 'lucide-react-native';
+import { Mic, Navigation, Loader2, Send, MicOff, AudioLines, User as UserIcon } from 'lucide-react-native';
 import GlassCard from '../UI/GlassCard';
 
 interface OmniBarProps {

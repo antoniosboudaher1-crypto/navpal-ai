@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { NavigationRoute, RouteStep } from '../../types';
+import { NavigationRoute } from '../../types';
 import GlassCard from '../UI/GlassCard';
-import { Clock, MapPin, Navigation, ArrowRight, ArrowLeft, ArrowUp, ChevronDown, ChevronUp, X, Flag, Timer, Ban, List } from 'lucide-react-native';
+import { Navigation, ArrowRight, ArrowLeft, ArrowUp, ChevronDown, ChevronUp, X, Flag, Timer, Ban, List } from 'lucide-react-native';
 
 interface RouteOverviewProps {
   route: NavigationRoute;
@@ -129,8 +129,7 @@ const RouteOverview: React.FC<RouteOverviewProps> = ({ route, isPreview, onClose
 
                 <ScrollView className="flex-1 p-2 bg-slate-950/30" contentContainerStyle={{ paddingBottom: 20 }}>
                   {route.steps.map((step, idx) => {
-                    // Calculate Remaining Metrics FROM this step to Destination
-                    const remainingDistance = Math.max(0, route.distance - cumulativeDistance);
+                    // Calculate Remaining Time FROM this step to Destination
                     const remainingTime = Math.max(0, route.duration - cumulativeTime);
 
                     // Update cumulative for next iteration

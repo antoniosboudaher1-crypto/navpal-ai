@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Share } from 'react-native';
 import { Place } from '../../types';
-import { Navigation, Star, MapPin, Share2, Clock, TriangleAlert, Globe, Phone } from 'lucide-react-native';
+import { Navigation, Star, MapPin, Share2, Clock, TriangleAlert, Phone } from 'lucide-react-native';
 import GlassCard from '../UI/GlassCard';
 
 interface LocationCardProps {

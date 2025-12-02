@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Mic, MicOff, Sparkles, Radio } from 'lucide-react';
+import { Mic, Sparkles, Radio } from 'lucide-react';
 
 interface OrbitalAssistantProps {
   isActive: boolean;
@@ -9,7 +9,7 @@ interface OrbitalAssistantProps {
 }
 
 const OrbitalAssistant: React.FC<OrbitalAssistantProps> = ({ isActive, state, onClick }) => {
-  
+
   // Determine ring colors and animations based on state
   const getRingStyles = () => {
     switch (state) {
@@ -47,31 +47,31 @@ const OrbitalAssistant: React.FC<OrbitalAssistantProps> = ({ isActive, state, on
   const styles = getRingStyles();
 
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`relative w-16 h-16 flex items-center justify-center transition-all duration-500 group ${isActive ? 'scale-110' : 'hover:scale-105'}`}
       title={isActive ? "Disconnect MyPal" : "Hey MyPal"}
     >
       {/* Outer Orbital Ring */}
       <div className={`absolute inset-0 rounded-full border-2 border-dashed transition-all duration-500 ${styles.outer}`} />
-      
+
       {/* Middle Ring */}
       <div className={`absolute inset-2 rounded-full border border-solid transition-all duration-500 ${styles.middle}`} />
-      
+
       {/* Core Orb */}
       <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${styles.inner} ${styles.glow}`}>
         {state === 'speaking' ? (
-           <div className="flex gap-0.5 h-3 items-center">
-              {[1,2,3].map(i => (
-                <div key={i} className="w-1 bg-white rounded-full animate-wave" style={{ animationDelay: `${i * 0.1}s`, height: '100%' }} />
-              ))}
-           </div>
+          <div className="flex gap-0.5 h-3 items-center">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="w-1 bg-white rounded-full animate-wave" style={{ animationDelay: `${i * 0.1}s`, height: '100%' }} />
+            ))}
+          </div>
         ) : state === 'thinking' ? (
-           <Sparkles className="w-5 h-5 text-white animate-spin" />
+          <Sparkles className="w-5 h-5 text-white animate-spin" />
         ) : state === 'listening' ? (
-           <Radio className="w-5 h-5 text-white" />
+          <Radio className="w-5 h-5 text-white" />
         ) : (
-           <Mic className="w-5 h-5 text-slate-300 group-hover:text-white" />
+          <Mic className="w-5 h-5 text-slate-300 group-hover:text-white" />
         )}
       </div>
 
